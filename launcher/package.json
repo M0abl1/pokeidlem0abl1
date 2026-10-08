@@ -1,0 +1,10 @@
+{
+  "name": "pokeidle-multi-launcher",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Quatro sessões independentes com prioridade XP/gold por conta",
+  "main": "main.cjs",
+  "scripts": { "start": "electron .", "local": "electron . --local", "test": "electron . --self-test", "check": "node --check main.cjs && node --check preload.cjs && node --check ui.js && node --check server-agent.cjs && node --check local.cjs" },
+  "devDependencies": { "electron": "latest" },
+  "dependencies": { "ws": "^8.18.0" }
+}

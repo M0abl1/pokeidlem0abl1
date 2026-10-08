@@ -1,0 +1,16 @@
+const assert=require('node:assert/strict'),path=require('node:path'),{openBraveLogin}=require('./brave.cjs');
+const calls=[];const spawnProcess=(exe,args,opts)=>{calls.push({exe,args,opts});return {on(){},unref(){}};};
+for(let i=0;i<4;i++)openBraveLogin(i,'C:\\launcher-test',{executable:'C:\\Brave\\brave.exe',spawnProcess});
+assert.equal(new Set(calls.map(c=>c.args[0])).size,4);
+assert.ok(calls.every(c=>c.args[2]==='https://pokeidle.io/app' && c.opts.shell===false));
+assert.throws(()=>openBraveLogin(-1,'C:\\launcher-test',{executable:'test',spawnProcess}));
+assert.throws(()=>openBraveLogin(4,'C:\\launcher-test',{executable:'test',spawnProcess}));
+assert.throws(()=>openBraveLogin(0,'C:\\launcher-test',{executable:null,spawnProcess}));
+openBraveLogin(2,'C:\\launcher-test',{executable:'C:\\Brave\\brave.exe',spawnProcess,pair:{port:12345,nonce:'a'.repeat(64),account:2}});
+assert.equal(calls[4].args.some(a=>a.startsWith('--user-data-dir')),false,'uses habitual Brave profile for Google accounts');
+assert.match(calls[4].args[1],/#launcher-bridge=12345/);
+console.log('OK: Brave launch target, four isolated profiles and account validation. Browser was not opened.');
+assert.throws(()=>openBraveLogin(0,'test',{executable:'/usr/bin/brave-browser',spawnProcess,pair:{port:17879,nonce:'invalid',account:0}}));
+openBraveLogin(0,'test',{executable:'/usr/bin/brave-browser',spawnProcess,pair:{port:17879,nonce:'b'.repeat(64),account:0}});
+assert.equal(calls.at(-1).exe,'/usr/bin/brave-browser');
+assert.equal(calls.at(-1).opts.shell,false);

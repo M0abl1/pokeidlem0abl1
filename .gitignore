@@ -1,0 +1,6 @@
+**/node_modules/
+npm-cache/
+electron-cache/
+.env
+server/data/
+backup-state.json

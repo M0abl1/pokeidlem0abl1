@@ -1,0 +1,7 @@
+{
+  "name":"pokeidle-server-web",
+  "private":true,
+  "version":"0.1.0",
+  "scripts":{"start":"node app.cjs","test":"node --test test/*.test.cjs","check":"node --check app.cjs && node --check lib/store.cjs"},
+  "dependencies":{"ws":"^8.18.0"}
+}

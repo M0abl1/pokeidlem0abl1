@@ -1,0 +1,322 @@
+<!doctype html>
+<html lang="pt-BR"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>PokeIdle Manager</title>
+<style>
+:root{--bg:#070d1a;--panel:#0f1a30;--panel-2:#0b1426;--line:#22345a;--line-hi:#3d5a94;--text:#e6edf8;--muted:#8a9bbb;--blue:#4c8dff;--blue-2:#2a5fd0;--green:#22c55e;--gold:#f5b942;--pink:#f472b6;--cyan:#38bdf8;--red:#ef5350}
+*{box-sizing:border-box}html,body{margin:0;height:100%}
+body{color:var(--text);font:13px/1.4 "Segoe UI",system-ui,sans-serif;background:radial-gradient(ellipse at 70% 120%,#1d2f55 0%,transparent 55%),radial-gradient(ellipse at 15% -10%,#1b2a4d 0%,transparent 45%),linear-gradient(#0a1224,#060b16);background-attachment:fixed}
+body::after{content:"";position:fixed;inset:auto 0 0 0;height:38vh;pointer-events:none;z-index:-1;background:linear-gradient(170deg,transparent 40%,#0d1830 41%) 0 0/50% 100% repeat-x,linear-gradient(195deg,transparent 45%,#0b1529 46%) 0 0/34% 100% repeat-x;opacity:.9}
+button,input,select{font:inherit;color:inherit}
+.serif{font-family:Georgia,"Times New Roman",serif}
+.panel{background:linear-gradient(#0f1b33ee,#0b1427ee);border:1px solid var(--line);border-radius:10px}
+.btn{display:inline-flex;align-items:center;gap:6px;justify-content:center;border:1px solid var(--line-hi);border-radius:8px;background:#13213d;padding:7px 12px;font-weight:600;cursor:pointer;white-space:nowrap}
+.btn:hover{border-color:var(--blue);background:#17284a}
+.btn.primary{background:linear-gradient(#2f6fe0,#2152b8);border-color:#5d95ff}
+.btn.green{background:linear-gradient(#22a855,#178a43);border-color:#4ade80}
+.btn.danger{background:linear-gradient(#b8373a,#8d2629);border-color:#ef7a7c}
+.btn.small{padding:5px 9px;font-size:12px}
+.btn.icon{width:30px;height:30px;padding:0}
+.pill{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:7px;border:1px solid var(--line);background:#0b1426;font-size:12px;color:#c9d6ee}
+.pill.ok{color:#86efac;border-color:#1f6b3c;background:#0c2418}.pill.ok::before{content:"●";font-size:9px}
+.pill.bad{color:#fca5a5;border-color:#6b1f24;background:#240c10}.pill.bad::before{content:"●";font-size:9px}
+.label{font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:700}
+/* login */
+#login{max-width:380px;margin:14vh auto;padding:28px;text-align:center}
+#login h1{margin:0 0 6px;font-size:24px}
+#login input{width:100%;margin:14px 0 10px;padding:10px;border-radius:8px;border:1px solid var(--line-hi);background:#081022}
+#error{color:var(--red);min-height:1.2em}
+/* shell */
+#app{display:grid;grid-template-rows:auto 1fr;height:100vh}
+#app[hidden]{display:none}
+.topbar{display:flex;align-items:center;gap:10px;padding:8px 12px;border-bottom:1px solid var(--line);background:#081124d9}
+.brand{font-size:20px;font-weight:800;font-style:italic;color:var(--gold);text-shadow:0 0 10px #f5b94255;width:212px;flex:none}
+.brand span{color:var(--cyan)}
+.tabs{display:flex;gap:2px;padding:3px;border:1px solid var(--line);border-radius:9px;background:#0b1426}
+.tab{border:0;background:none;padding:6px 12px;border-radius:7px;font-weight:600;color:#b9c7e2;cursor:pointer}
+.tab.active{background:#1c2c4f;color:#fff}
+.topbar .grow{flex:1}
+.shell{display:grid;grid-template-columns:200px minmax(0,1fr) 300px;gap:10px;padding:10px;min-height:0}
+/* sidebar */
+.sidebar{display:flex;flex-direction:column;gap:10px;min-height:0}
+.summary{display:grid;grid-template-columns:1fr 1fr;padding:10px 12px;gap:6px}
+.summary strong{display:block;font-size:17px}
+.side-list{display:flex;flex-direction:column;gap:8px;overflow:auto}
+.side-item{display:flex;align-items:center;gap:9px;width:100%;padding:10px;text-align:left;border:1px solid var(--line);border-radius:9px;background:#0d182d;cursor:pointer}
+.side-item:hover{border-color:var(--line-hi)}
+.side-item.active{border-color:#6ea0ff;background:linear-gradient(#183061,#12244a);box-shadow:0 0 0 1px #6ea0ff55,0 0 16px #4c8dff33}
+.tagbox{display:grid;place-items:center;width:30px;height:24px;border-radius:5px;background:#1d3566;color:#a9c6ff;font-size:10px;font-weight:800;flex:none}
+.side-item b{display:block;font-size:12px}.side-item small{display:block;color:var(--muted);font-size:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.side-item .dot{margin-left:auto;width:8px;height:8px;border-radius:50%;background:var(--red);flex:none}.side-item .dot.on{background:var(--green);box-shadow:0 0 6px var(--green)}
+.sidebar .grow{flex:1}
+.core{font-size:11px;color:var(--muted)}.core::before{content:"";display:inline-block;width:7px;height:7px;margin-right:6px;border-radius:50%;background:var(--red)}.core.on::before{background:var(--green);box-shadow:0 0 6px var(--green)}
+/* main */
+main.content{display:flex;flex-direction:column;gap:10px;min-width:0;min-height:0;overflow:auto}
+.head{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:10px 14px}
+.head h1{margin:0 6px 0 0;font-size:20px}
+.head .grow{flex:1}
+.view[hidden]{display:none!important}.view{display:flex;flex-direction:column;gap:10px}
+.stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+.stat{display:flex;align-items:center;gap:12px;padding:14px}
+.stat .ico{display:grid;place-items:center;width:38px;height:38px;border-radius:9px;font-size:18px;flex:none}
+.stat strong{display:block;font-size:20px;font-variant-numeric:tabular-nums}.stat small{color:var(--muted);font-size:11px}
+/* gameplay */
+.gameplay{display:grid;grid-template-columns:minmax(0,1.75fr) minmax(260px,1fr);gap:10px;padding:10px}
+.gameplay.off{grid-template-columns:1fr}
+.remote{display:flex;flex-direction:column;border:1px solid #4c7fe0;border-radius:10px;background:#0a1530;box-shadow:0 0 0 1px #4c8dff33,0 0 22px #4c8dff22;overflow:hidden}
+.remote-head{display:flex;align-items:center;gap:8px;padding:8px 10px;border-bottom:1px solid var(--line)}
+.remote-head .grow{flex:1}
+#desktop-frame{flex:1;min-height:440px;background:#000}
+#desktop-frame iframe{display:block;width:100%;height:100%;min-height:440px;border:0}
+.remote.full #desktop-frame,.remote.full #desktop-frame iframe{min-height:calc(100vh - 200px)}
+.gameplay.off #desktop-frame,.gameplay.off .on-only,.gameplay:not(.off) .off-only{display:none}
+.gameplay.off .remote-head{border-bottom:0}
+.minis{display:flex;flex-direction:column;gap:10px;max-height:calc(100vh - 290px);overflow:auto}
+.gameplay.off .minis{flex-direction:row;flex-wrap:wrap;justify-content:center;max-height:none}
+.gameplay.off .mini{flex:0 1 320px}
+.mini{position:relative;display:flex;flex-direction:column;padding:10px;border:1px solid var(--line);border-radius:10px;background:linear-gradient(#0f1d38,#0b152a);cursor:pointer;text-align:left;width:100%}
+.mini:hover{border-color:var(--line-hi)}
+.mini.active{border-color:#6ea0ff;box-shadow:0 0 0 1px #6ea0ff66}
+.mini .corner{display:flex;flex-direction:column;gap:4px;font-size:11px;font-weight:700}
+.mini .corner span{display:flex;align-items:center;gap:6px}
+.mini .state{position:absolute;top:8px;right:8px}
+.mini .state .pill{font-size:10px;padding:2px 7px}
+.mini .center{text-align:center;margin:-14px 0 8px}
+.mini .sprite{font-size:34px;line-height:1.2}.mini .sprite img{display:block;width:60px;height:60px;margin:0 auto;object-fit:contain;image-rendering:auto}
+.mini .center b{display:block;font-size:13px}.mini .center small{color:var(--muted);font-size:10px}
+.mini .center .hunt{color:#7fb0ff;font-size:11px}
+.mini .foot{display:flex;justify-content:space-between;gap:6px;padding-top:7px;border-top:1px solid var(--line);font-size:11px;font-weight:700}
+.mini.off-profile,.side-item.off-profile{opacity:.5}.mini.off-profile .sprite{filter:grayscale(1)}
+.pill.idle{color:#cbd5e1;border-color:#475569;background:#111827}
+.gold{color:var(--gold)}.pink{color:var(--pink)}.cyan{color:var(--cyan)}
+/* detail */
+.detail{display:flex;flex-direction:column;gap:12px;padding:12px;overflow:auto;min-height:0}
+.detail-head{display:flex;align-items:flex-start;justify-content:space-between}
+.detail-head h2{margin:0;font-size:15px}.detail-head small{color:var(--muted);font-size:10px}
+.hero{display:flex;gap:12px;align-items:center;padding:12px;border:1px solid var(--line);border-radius:10px;background:#0b1528}
+.hero .sprite{display:grid;place-items:center;width:70px;height:70px;border-radius:10px;background:radial-gradient(#1e3a70,#0b1528);font-size:36px;flex:none}.hero .sprite img{width:64px;height:64px;object-fit:contain}
+.hero b{display:block;font-size:14px}.hero small{display:block;color:#7fb0ff;font-size:11px}
+.hero-stats{display:grid;grid-template-columns:repeat(3,1fr);margin-top:4px;border-top:1px solid var(--line);padding-top:8px;text-align:center;font-size:10px;color:var(--muted)}
+.hero-stats strong{display:block;color:var(--text);font-size:13px}
+.block h3{margin:0 0 6px;font-size:12px}
+.block .sub{margin:-4px 0 8px;color:var(--muted);font-size:10px}
+.supplies{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.supply{padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:#0b1528}
+.supply.on{border-color:#5d95ff;background:#12244a}
+.supply small{display:block;font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}.supply b{font-size:15px}
+.switch{display:flex;align-items:center;gap:10px;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:#0b1528;margin-bottom:6px;cursor:pointer}
+.switch span{flex:1}.switch b{display:block;font-size:12px}.switch small{color:var(--muted);font-size:10px}
+.switch input{appearance:none;width:34px;height:18px;border-radius:9px;background:#1a2643;border:1px solid var(--line-hi);position:relative;cursor:pointer;flex:none;transition:.15s}
+.switch input::after{content:"";position:absolute;top:2px;left:2px;width:12px;height:12px;border-radius:50%;background:#8a9bbb;transition:.15s}
+.switch input:checked{background:var(--blue-2);border-color:#7fb0ff}.switch input:checked::after{left:18px;background:#fff}
+.perf{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.perf div{padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:#0b1528}
+.perf small{display:block;font-size:10px;color:var(--muted)}.perf strong{font-size:14px;font-variant-numeric:tabular-nums}
+.note{margin:0;font-size:11px;color:var(--muted)}
+.err{margin:0;color:#fca5a5;font-size:12px}.err:empty{display:none}
+.detail .actions{display:flex;flex-direction:column;gap:8px;margin-top:auto}
+/* tables & history */
+table{width:100%;border-collapse:collapse;font-size:12px}
+th,td{padding:9px 10px;text-align:left;border-bottom:1px solid var(--line)}
+th{color:var(--muted);font-size:10px;letter-spacing:.06em;text-transform:uppercase}
+tbody tr{cursor:pointer}tbody tr:hover{background:#12213f}
+td.num{font-variant-numeric:tabular-nums}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chip{padding:5px 10px;border-radius:7px;border:1px solid var(--line);background:#0d182d;cursor:pointer;font-weight:600;font-size:12px}
+.chip.active{border-color:#6ea0ff;background:#183061}
+.history pre{margin:0;max-height:65vh;overflow:auto;padding:12px;border-radius:8px;background:#060c18;color:#c9d6ee;font:12px/1.6 ui-monospace,Consolas,monospace;white-space:pre-wrap}
+.empty{color:var(--muted);margin:0}
+/* captures */
+.cap-tools{display:flex;flex-wrap:wrap;gap:8px;align-items:end;padding:10px 12px}
+.cap-tools label{display:flex;flex-direction:column;gap:3px;font-size:10px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.05em}
+.cap-tools select,.cap-tools input[type=search],.cap-tools input[type=number]{padding:6px 8px;border-radius:7px;border:1px solid var(--line-hi);background:#081022;min-width:90px}
+.cap-tools input[type=number]{width:90px}.cap-tools .check{flex-direction:row;align-items:center;gap:6px;padding-bottom:7px}
+.cap-tools .grow{flex:1}
+.cap-summary{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px}
+.cap-summary div{padding:10px 12px}.cap-summary strong{display:block;font-size:18px;font-variant-numeric:tabular-nums}
+.cap-table{overflow:auto;max-height:calc(100vh - 330px)}
+.cap-table th[data-sort]{cursor:pointer;user-select:none;white-space:nowrap}.cap-table th[data-sort]:hover{color:var(--text)}
+.cap-table th.sorted{color:#7fb0ff}.cap-table th.sorted::after{content:attr(data-arrow)}.cap-table thead th{position:sticky;top:0;background:#0d1730;z-index:1}
+.cap-table td{white-space:nowrap}.cap-table tbody tr{cursor:default}
+.cap-table .spr{width:44px;padding:2px 6px}.cap-table .spr img{display:block;width:40px;height:40px;object-fit:contain}
+.cap-table .ivs{font-size:11px;color:#b9c7e2;font-variant-numeric:tabular-nums}.cap-table .ivs b{color:#86efac;font-weight:700}
+.tag-p{display:inline-block;padding:1px 7px;border-radius:6px;background:#1d3566;color:#a9c6ff;font-weight:800;font-size:11px}
+.shiny{color:var(--gold)}
+@media (max-width:1250px){.cap-summary{grid-template-columns:repeat(2,minmax(0,1fr))}#app{height:auto;min-height:100vh}.shell{grid-template-columns:180px minmax(0,1fr)}main.content,.detail{overflow:visible}.detail{grid-column:1/-1}.stats{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:820px){#app{grid-template-columns:minmax(0,1fr)}.shell{grid-template-columns:minmax(0,1fr)}.brand{width:auto}.topbar,.remote-head{flex-wrap:wrap}.gameplay{grid-template-columns:minmax(0,1fr)}.minis{max-height:none}.side-list{flex-direction:row;overflow:auto}.side-item{min-width:160px}.sidebar .grow{display:none}}
+</style>
+<main id="login" class="panel"><h1 class="serif">PokeIdle Manager</h1><p>Autentique o painel.</p><input id="token" type="password" autocomplete="current-password" placeholder="Token do painel"><button id="sign-in" class="btn primary">Entrar</button><p id="error"></p></main>
+<div id="app" hidden>
+  <header class="topbar">
+    <div class="brand">PokeIdle <span>Manager</span></div>
+    <nav class="tabs"><button class="tab active" data-view="gameplay">Gameplay</button><button class="tab" data-view="overview">Visão Geral</button><button class="tab" data-view="captures">Capturas</button><button class="tab" data-view="history">Histórico</button></nav>
+    <div class="grow"></div>
+    <span class="pill ok" id="online-pill">0/0 online</span>
+    <button class="btn danger small" id="pause-all">Pausar todas</button>
+  </header>
+  <div class="shell">
+    <aside class="sidebar">
+      <div class="summary panel"><div><span class="label">Contas</span><strong id="sum-accounts">0</strong></div><div><span class="label">Online</span><strong id="sum-online">0</strong></div></div>
+      <span class="label">Seletor de contas</span>
+      <div class="side-list" id="side-list"></div>
+      <div class="grow"></div>
+      <div class="core" id="core">Servidor desconectado</div>
+    </aside>
+
+    <main class="content">
+      <div class="head panel"><h1 class="serif" id="view-title">Gameplay</h1><span class="pill ok" id="head-online">0 de 0 contas conectadas</span><span class="pill" id="mode-pill">Modo: Tela remota</span><div class="grow"></div><button class="btn small" id="refresh">⟳ Atualizar</button></div>
+      <div class="stats" id="stats"></div>
+
+      <section class="view" id="view-gameplay">
+        <div class="gameplay panel off" id="gameplay">
+          <div class="remote" id="desktop">
+            <div class="remote-head"><b id="remote-title">Tela remota</b><span class="pill bad off-only" id="remote-state">Desligada</span><span class="pill ok on-only">Conectada</span><div class="grow"></div>
+              <button class="btn small primary off-only" id="open-desktop">Abrir tela remota</button>
+              <span class="on-only"><button class="btn small" id="fullscreen-desktop">Expandir</button> <button class="btn small" id="reload-desktop">Reconectar</button> <button class="btn small" id="close-desktop">Desligar</button></span></div>
+            <div id="desktop-frame"></div>
+          </div>
+          <div class="minis" id="accounts"></div>
+        </div>
+      </section>
+
+      <section class="view" id="view-overview" hidden>
+        <div class="panel" style="overflow:auto"><table><thead><tr><th>Conta</th><th>Status</th><th>Pokémon</th><th>Hunt</th><th>XP/min</th><th>Gold/min</th><th>Abates/min</th><th>Ultra Ball</th><th>Great Potion</th><th>Automações</th></tr></thead><tbody id="overview"></tbody></table></div>
+      </section>
+
+      <section class="view" id="view-captures" hidden>
+        <div class="panel cap-tools">
+          <label>Conta<select id="cap-account"><option value="all">Todas</option></select></label>
+          <label>Potência<select id="cap-p"><option value="all">Todas</option></select></label>
+          <label>Espécie<input id="cap-search" type="search" placeholder="Buscar…"></label>
+          <label>Score mín.<input id="cap-score" type="number" min="0" step="1" placeholder="0"></label>
+          <label>IV mín.<input id="cap-iv" type="number" min="0" max="192" step="1" placeholder="0"></label>
+          <label>Qualidade mín.<input id="cap-quality" type="number" min="0" step="0.05" placeholder="0"></label>
+          <label class="check"><input id="cap-shiny" type="checkbox"> Só shiny</label>
+          <div class="grow"></div>
+          <span class="note" id="cap-session"></span>
+          <button class="btn small danger" id="cap-clear">Nova sessão</button>
+        </div>
+        <div class="cap-summary" id="cap-summary"></div>
+        <div class="panel cap-table"><table><thead><tr><th></th><th data-sort="species">Espécie</th><th data-sort="account">Conta</th><th data-sort="level">Nv</th><th data-sort="p">Potência</th><th data-sort="quality">Qualidade</th><th data-sort="ivTotal">IV total</th><th>IVs (HP · ATK · DEF · SpA · SpD · SPD)</th><th data-sort="score">Score</th><th data-sort="gameScore">Nota oficial</th><th data-sort="hunt">Hunt</th><th data-sort="at">Hora</th></tr></thead><tbody id="captures"></tbody></table></div>
+      </section>
+
+      <section class="view" id="view-history" hidden>
+        <div class="panel head"><span class="label">Filtro</span><div class="chips" id="history-chips"></div></div>
+        <div class="panel history" style="padding:12px" id="history"></div>
+      </section>
+    </main>
+
+    <aside class="detail panel" id="detail"></aside>
+  </div>
+</div>
+<script>
+const escapeHtml=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const spriteSlug=name=>{const n=String(name||'').replace(/\s+Nv\.?\s*\d+.*$/i,'').trim();if(!n||/não identificado/i.test(n))return'';return n.toLowerCase().replace(/♀/g,'-f').replace(/♂/g,'-m').normalize('NFD').replace(/\p{M}/gu,'').replace(/[.'’:]/g,'').replace(/\s+/g,'-').replace(/[^a-z0-9-]/g,'').replace(/-+/g,'-').replace(/^-|-$/g,'');};
+// Sprites are cached on the server (PokémonDB "home" set) so they change instantly with the active Pokémon.
+const sprite=(name,shiny=false)=>{const slug=spriteSlug(name);return slug?`<img src="/sprites/${shiny?'shiny':'normal'}/${slug}.png" alt="${escapeHtml(name)}" loading="lazy" onerror="this.replaceWith(document.createTextNode('🐾'))">`:'🐾';};
+const $=id=>document.getElementById(id);
+const fmt=value=>Number.isFinite(value)?Math.round(value).toLocaleString('pt-BR'):'—';
+const sum=key=>(state?.accounts||[]).reduce((total,a)=>total+(Number.isFinite(a.status[key])?a.status[key]:0),0);
+const isEnabled=account=>account.settings?.enabled!==false;
+const isOnline=account=>isEnabled(account)&&!/desconectado|aguardando|desativado/i.test(account.status.connection||'Aguardando');
+const statusPill=(account,on,off)=>!isEnabled(account)?'<span class="pill idle">Desativado</span>':isOnline(account)?`<span class="pill ok">${on}</span>`:`<span class="pill bad">${off}</span>`;
+const DESKTOP_URL='/desktop/vnc.html?autoconnect=1&resize=scale&view_only=false&path=desktop/websockify';
+const TOGGLES=[
+  ['autoHunts','Trocar hunt pelo XP','Escolhe a hunt com maior XP medido.'],
+  ['autoCapture','Captura automática','Captura sem VIP quando houver alvo.'],
+  ['autoBuyBalls','Repor Ultra Ball','Abaixo de 100 compra 100.'],
+  ['autoBuyPotions','Repor Great Potion','Abaixo de 200 compra 200.']];
+const VIEWS={gameplay:'Gameplay',overview:'Visão Geral',captures:'Capturas',history:'Histórico'};
+const IV_KEYS=['hp','atk','def','spAtk','spDef','spd'];
+const decimal=(value,digits)=>Number.isFinite(value)?value.toLocaleString('pt-BR',{minimumFractionDigits:digits,maximumFractionDigits:digits}):'—';
+let captures=[],captureSession=null,capSort={key:'at',dir:-1};
+const errors=new Map();
+let state,view='gameplay',selected=0,historyFilter='all';
+
+async function request(url,options={}){const response=await fetch(url,{...options,headers:{'Content-Type':'application/json',...(options.headers||{})}});if(!response.ok)throw Error((await response.json().catch(()=>({}))).error||'Falha');return response.status===204?null:response.json();}
+function showError(id,message){errors.set(id,message);selected=id;render();}
+async function update(id,value){try{await request(`/api/accounts/${id}/settings`,{method:'PUT',body:JSON.stringify(value)});errors.delete(id);}catch(error){showError(id,error.message);}}
+async function authorizeLogin(id){const popup=window.open('about:blank','_blank');if(!popup){showError(id,'Permita a abertura de janelas para fazer login.');return;}popup.opener=null;try{const pair=await request(`/api/accounts/${id}/login`,{method:'POST'});const params=new URLSearchParams({'launcher-remote':location.origin,nonce:pair.nonce,account:String(id)});popup.location.replace(`https://pokeidle.io/app#${params}`);}catch(error){popup.close();showError(id,error.message);}}
+function focusRemote(id){if(state?.local||!$('gameplay').classList.contains('off'))request(`/api/accounts/${id}/focus`,{method:'POST'}).catch(error=>showError(id,error.message));}
+function pauseAccount(id){request(`/api/accounts/${id}/pause`,{method:'POST'}).catch(error=>showError(id,error.message));}
+
+function setView(next){view=next;document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('active',b.dataset.view===next));for(const key of Object.keys(VIEWS))$(`view-${key}`).hidden=key!==next;$('view-title').textContent=VIEWS[next];render();}
+const current=()=>state.accounts[selected]||state.accounts[0];
+
+function renderChrome(){const total=state.accounts.length,online=state.accounts.filter(isOnline).length;
+  $('sum-accounts').textContent=total;$('sum-online').textContent=online;
+  $('online-pill').textContent=`${online}/${total} online`;$('online-pill').className=`pill ${online?'ok':'bad'}`;
+  $('head-online').textContent=`${online} de ${total} contas conectadas`;$('head-online').className=`pill ${online?'ok':'bad'}`;
+  $('side-list').innerHTML=state.accounts.map(a=>`<button class="side-item ${a.id===selected?'active':''} ${isEnabled(a)?'':'off-profile'}" data-select="${a.id}"><span class="tagbox">C${String(a.id+1).padStart(2,'0')}</span><span style="min-width:0"><b>${escapeHtml(a.name)}</b><small>${isEnabled(a)?escapeHtml(a.status.hunt||a.status.connection||'—'):'Perfil desativado'}</small></span><span class="dot ${isOnline(a)?'on':''}"></span></button>`).join('');
+  $('stats').innerHTML=[
+    ['⚡','#1d3a7a','XP / min',fmt(sum('xpPerMin')),'Somado das contas'],
+    ['💰','#5a4214','Gold / min',fmt(sum('goldPerMin')),'Rendimento em tempo real'],
+    ['⚔️','#5a1d2a','Abates / min',fmt(sum('killsPerMin')),'Somado das contas'],
+    ['👥','#14472b','Contas online',`${online}/${total}`,'Agentes conectados']
+  ].map(([icon,bg,label,value,sub])=>`<div class="stat panel"><div class="ico" style="background:${bg}">${icon}</div><div><span class="label">${label}</span><strong>${value}</strong><small>${sub}</small></div></div>`).join('');}
+
+function renderMinis(){$('accounts').innerHTML=state.accounts.map(a=>{const s=a.status,online=isOnline(a);return `<button class="mini ${a.id===selected?'active':''} ${isEnabled(a)?'':'off-profile'}" data-select="${a.id}">
+  <span class="corner"><span>🔵 ${fmt(s.ultraBallStock)}</span><span>🧪 ${fmt(s.greatPotionStock)}</span></span>
+  <span class="state">${statusPill(a,'Conectada','Offline')}</span>
+  <span class="center"><span class="sprite">${sprite(s.active)}</span><b>${escapeHtml(s.active||'—')}</b><small>${escapeHtml(a.name)}</small><br><span class="hunt">📍 ${escapeHtml(s.hunt||'Sem hunt')}</span></span>
+  <span class="foot"><span class="gold">💰 ${fmt(s.goldPerMin)}/min</span><span class="cyan">⚡ ${fmt(s.xpPerMin)}/min</span><span class="pink">⚔️ ${fmt(s.killsPerMin)}</span></span>
+</button>`;}).join('');}
+
+function renderDetail(){const a=current();if(!a)return;selected=a.id;const s=a.status,online=isOnline(a),autos=TOGGLES.filter(([key])=>a.settings[key]).length;
+  $('detail').innerHTML=`<div class="detail-head"><div><h2>${escapeHtml(a.name)}</h2><small>Conta ${a.id+1} · ${escapeHtml(s.connection||'—')}</small></div>${statusPill(a,'Online','Offline')}</div>
+  <label class="switch"><span><b>Perfil ativo</b><small>${isEnabled(a)?'Desligue para não abrir o jogo desta conta.':'Perfil desativado: o jogo desta conta não é carregado.'}</small></span><input type="checkbox" data-account="${a.id}" data-setting="enabled" ${isEnabled(a)?'checked':''}></label>
+  <div class="hero" style="flex-direction:column;align-items:stretch"><div style="display:flex;gap:12px;align-items:center"><div class="sprite">${sprite(s.active)}</div><div><b>${escapeHtml(s.active||'—')}</b><small>📍 ${escapeHtml(s.hunt||'Sem hunt')}</small><small style="color:var(--muted)">${s.updatedAt?'Atualizado '+new Date(s.updatedAt).toLocaleTimeString('pt-BR'):''}</small></div></div>
+    <div class="hero-stats"><div>Automações<strong>${autos}/${TOGGLES.length}</strong></div><div>Alvos<strong>${fmt(s.captureTargets)}</strong></div><div>Abates/min<strong>${fmt(s.killsPerMin)}</strong></div></div></div>
+  <div class="block"><h3>Suprimentos</h3><p class="sub">Estoque informado pelo jogo; destacado quando a reposição está ativa.</p><div class="supplies"><div class="supply ${a.settings.autoBuyBalls?'on':''}"><small>Ultra Ball</small><b>🔵 ${fmt(s.ultraBallStock)}</b></div><div class="supply ${a.settings.autoBuyPotions?'on':''}"><small>Great Potion</small><b>🧪 ${fmt(s.greatPotionStock)}</b></div></div></div>
+  <div class="block"><h3>Automações</h3>${TOGGLES.map(([key,title,text])=>`<label class="switch"><span><b>${title}</b><small>${text}</small></span><input type="checkbox" data-account="${a.id}" data-setting="${key}" ${a.settings[key]?'checked':''}></label>`).join('')}</div>
+  <div class="block"><h3>Rendimento</h3><div class="perf"><div><small>Gold / min</small><strong class="gold">${fmt(s.goldPerMin)}</strong></div><div><small>XP / min</small><strong class="cyan">${fmt(s.xpPerMin)}</strong></div><div><small>Abates / min</small><strong class="pink">${fmt(s.killsPerMin)}</strong></div><div><small>Captura</small><strong style="font-size:11px">${escapeHtml(s.captureStatus||'—')}</strong></div></div></div>
+  <p class="note">${escapeHtml(s.automationStatus||'Aguardando dados do jogo.')}</p>${s.diagnostic?`<p class="note">⚠️ ${escapeHtml(s.diagnostic)}</p>`:''}
+  <p class="err" role="status">${escapeHtml(errors.get(a.id)||'')}</p>
+  <div class="actions">${state.local?`<button class="btn primary" data-local-login="${a.id}" ${isEnabled(a)?'':'disabled'}>Entrar no jogo (janela de login)</button>`:`<button class="btn primary" data-login="${a.id}">Login Google pela extensão</button>`}<button class="btn danger" data-pause="${a.id}">Pausar automações desta conta</button></div>`;}
+
+function renderOverview(){$('overview').innerHTML=state.accounts.map(a=>{const s=a.status,online=isOnline(a);return `<tr data-row="${a.id}"><td><b>${escapeHtml(a.name)}</b></td><td>${statusPill(a,'Online','Offline')}</td><td>${escapeHtml(s.active||'—')}</td><td>${escapeHtml(s.hunt||'—')}</td><td class="num cyan">${fmt(s.xpPerMin)}</td><td class="num gold">${fmt(s.goldPerMin)}</td><td class="num pink">${fmt(s.killsPerMin)}</td><td class="num">${fmt(s.ultraBallStock)}</td><td class="num">${fmt(s.greatPotionStock)}</td><td>${TOGGLES.filter(([key])=>a.settings[key]).length}/${TOGGLES.length}</td></tr>`;}).join('');}
+function renderHistory(){$('history-chips').innerHTML=`<button class="chip ${historyFilter==='all'?'active':''}" data-filter="all">Todas</button>`+state.accounts.map(a=>`<button class="chip ${historyFilter===a.id?'active':''}" data-filter="${a.id}">${escapeHtml(a.name)}</button>`).join('');const names=new Map(state.accounts.map(a=>[a.id,a.name]));const events=(state.logs||[]).filter(e=>historyFilter==='all'||e.account===historyFilter).slice(0,100);
+  $('history').innerHTML=events.length?`<pre>${events.map(e=>`${new Date(e.at).toLocaleTimeString('pt-BR')} · ${escapeHtml(names.has(e.account)?names.get(e.account):e.account)} · ${escapeHtml(e.message)}`).join('\n')}</pre>`:'<p class="empty">Nenhuma ação registrada.</p>';}
+
+function addCaptures(list){const seen=new Set(captures.map(c=>`${c.account}:${c.id}`));for(const c of list)if(!seen.has(`${c.account}:${c.id}`))captures.push(c);}
+function filteredCaptures(){const account=$('cap-account').value,p=$('cap-p').value,search=$('cap-search').value.trim().toLowerCase(),minScore=Number($('cap-score').value)||0,minIv=Number($('cap-iv').value)||0,minQuality=Number($('cap-quality').value)||0,shiny=$('cap-shiny').checked;
+  return captures.filter(c=>(account==='all'||c.account===Number(account))&&(p==='all'||c.p===p)&&(!search||c.species.toLowerCase().includes(search))&&(c.score??0)>=minScore&&(c.ivTotal??0)>=minIv&&(c.quality??0)>=minQuality&&(!shiny||c.shiny));}
+function sortCaptures(list){const {key,dir}=capSort,names=new Map(state.accounts.map(a=>[a.id,a.name]));const value=c=>key==='account'?names.get(c.account)||'':key==='p'?Number(String(c.p||'').slice(1))||null:c[key];
+  return list.sort((a,b)=>{const x=value(a),y=value(b);if(x==null&&y==null)return 0;if(x==null)return 1;if(y==null)return -1;return (typeof x==='string'?x.localeCompare(y,'pt-BR'):x-y)*dir;});}
+function syncOptions(select,values,labels){if([...select.options].slice(1).map(o=>o.value).join()===values.join())return;const value=select.value;select.innerHTML='<option value="all">Todas</option>'+values.map((v,i)=>`<option value="${escapeHtml(v)}">${escapeHtml(labels[i])}</option>`).join('');select.value=values.includes(value)?value:'all';}
+function renderCaptures(){const names=new Map(state.accounts.map(a=>[a.id,a.name]));
+  syncOptions($('cap-account'),state.accounts.map(a=>String(a.id)),state.accounts.map(a=>a.name));
+  const ps=[...new Set(captures.map(c=>c.p).filter(Boolean))].sort((a,b)=>Number(b.slice(1))-Number(a.slice(1)));syncOptions($('cap-p'),ps,ps);
+  $('cap-session').textContent=captureSession?`Sessão desde ${new Date(captureSession).toLocaleString('pt-BR')}`:'';
+  const list=sortCaptures(filteredCaptures()),best=list.reduce((m,c)=>Number.isFinite(c.score)&&c.score>(m?.score??-1)?c:m,null),ivs=list.filter(c=>Number.isFinite(c.ivTotal));
+  $('cap-summary').innerHTML=[['Capturados',`${list.length}${list.length!==captures.length?` / ${captures.length}`:''}`],['Shiny',list.filter(c=>c.shiny).length],['Espécies',new Set(list.map(c=>c.species)).size],['IV médio',ivs.length?Math.round(ivs.reduce((t,c)=>t+c.ivTotal,0)/ivs.length):'—'],['Melhor score',best?`${decimal(best.score,1)} · ${escapeHtml(best.species)}`:'—']].map(([label,value])=>`<div class="panel"><span class="label">${label}</span><strong>${value}</strong></div>`).join('');
+  document.querySelectorAll('.cap-table th[data-sort]').forEach(th=>{const on=th.dataset.sort===capSort.key;th.classList.toggle('sorted',on);th.dataset.arrow=on?(capSort.dir>0?' ▲':' ▼'):'';});
+  $('captures').innerHTML=list.length?list.slice(0,1000).map(c=>`<tr><td class="spr">${sprite(c.species,c.shiny)}</td><td><b class="${c.shiny?'shiny':''}">${escapeHtml(c.species)}${c.shiny?' ✨':''}</b>${c.profile?`<br><small class="note">${escapeHtml(c.profile)}</small>`:''}</td><td>${escapeHtml(names.get(c.account)??`Conta ${c.account+1}`)}</td><td class="num">${fmt(c.level)}</td><td>${c.p?`<span class="tag-p">${escapeHtml(c.p)}</span>`:'—'}</td><td class="num">${decimal(c.quality,3)}</td><td class="num">${c.ivTotal!=null?`${c.ivTotal}/192`:'—'}</td><td class="ivs">${IV_KEYS.map(k=>c.ivs?.[k]==null?'—':c.ivs[k]>=28?`<b>${c.ivs[k]}</b>`:c.ivs[k]).join(' · ')}</td><td class="num cyan">${decimal(c.score,1)}</td><td class="num gold">${decimal(c.gameScore,1)}</td><td>${escapeHtml(c.hunt||'—')}</td><td class="num">${new Date(c.at).toLocaleTimeString('pt-BR')}</td></tr>`).join(''):`<tr><td colspan="12"><p class="empty">${captures.length?'Nenhuma captura com esses filtros.':'Nenhuma captura nesta sessão ainda.'}</p></td></tr>`;}
+
+function render(){if(!state?.accounts?.length)return;if(!state.accounts[selected])selected=0;renderChrome();renderDetail();if(view==='gameplay')renderMinis();else if(view==='overview')renderOverview();else if(view==='captures')renderCaptures();else renderHistory();}
+
+document.addEventListener('click',event=>{const th=event.target.closest('th[data-sort]');if(th){const key=th.dataset.sort;capSort=capSort.key===key?{key,dir:-capSort.dir}:{key,dir:['species','account','hunt'].includes(key)?1:-1};render();return;}const row=event.target.closest('tr[data-row]');if(row){selected=Number(row.dataset.row);render();focusRemote(selected);return;}const el=event.target.closest('button');if(!el)return;const d=el.dataset;
+  if(d.view)setView(d.view);
+  else if(d.login!==undefined)authorizeLogin(Number(d.login));
+  else if(d.localLogin!==undefined){const id=Number(d.localLogin);request(`/api/accounts/${id}/local-login`,{method:'POST'}).catch(error=>showError(id,error.message));}
+  else if(d.pause!==undefined)pauseAccount(Number(d.pause));
+  else if(d.select!==undefined){selected=Number(d.select);render();focusRemote(selected);}
+  else if(d.filter!==undefined){historyFilter=d.filter==='all'?'all':Number(d.filter);render();}});
+for(const id of ['cap-account','cap-p','cap-search','cap-score','cap-iv','cap-quality','cap-shiny'])$(id).addEventListener('input',()=>{if(view==='captures')renderCaptures();});
+$('cap-clear').onclick=()=>{if(confirm('Iniciar uma nova sessão? A lista de capturas atual será apagada.'))request('/api/captures/clear',{method:'POST'}).catch(error=>alert(error.message));};
+document.addEventListener('change',event=>{const input=event.target;if(!input.dataset?.setting)return;const id=Number(input.dataset.account),key=input.dataset.setting,value=input.checked;update(id,key==='autoHunts'?{[key]:value,xpPriority:100}:{[key]:value});});
+
+function openDesktop(){const host=$('desktop-frame');$('gameplay').classList.remove('off');if(host.querySelector('iframe'))return;host.innerHTML='<iframe title="Launcher PokeIdle" allow="fullscreen" referrerpolicy="same-origin"></iframe>';host.querySelector('iframe').src=DESKTOP_URL;}
+function closeDesktop(){$('desktop-frame').innerHTML='';$('desktop').classList.remove('full');$('gameplay').classList.add('off');$('fullscreen-desktop').textContent='Expandir';}
+$('open-desktop').onclick=openDesktop;$('close-desktop').onclick=closeDesktop;
+$('reload-desktop').onclick=()=>{closeDesktop();openDesktop();};
+$('fullscreen-desktop').onclick=()=>{const full=$('desktop').classList.toggle('full');$('fullscreen-desktop').textContent=full?'Reduzir':'Expandir';};
+$('refresh').onclick=()=>request('/api/accounts').then(data=>{state={...state,...data};render();}).catch(()=>{});
+
+async function signIn(){try{await request('/api/session',{method:'POST',body:JSON.stringify({token:$('token').value})});state={type:'state',...await request('/api/accounts')};start();}catch(error){$('error').textContent=error.message;}}
+// Local desktop version: games run in their own window, so the remote screen becomes a shortcut to it.
+function configureLocal(){$('mode-pill').textContent='Modo: Local';$('remote-title').textContent='Janela do jogo';$('remote-state').textContent='Janela separada';$('remote-state').className='pill idle off-only';
+  $('open-desktop').textContent='Mostrar jogo da conta selecionada';$('open-desktop').onclick=()=>request(`/api/accounts/${selected}/focus?raise=1`,{method:'POST'}).catch(error=>showError(selected,error.message));}
+function start(){$('login').hidden=true;$('token').value='';$('app').hidden=false;connect();if(state?.local)configureLocal();else openDesktop();}
+function connect(){const ws=new WebSocket(`${location.protocol==='https:'?'wss':'ws'}://${location.host}/?mode=web`);ws.onopen=()=>{$('core').className='core on';$('core').textContent='Servidor conectado';};ws.onmessage=event=>{const msg=JSON.parse(event.data);if(msg.type==='state'){state={...state,...msg};render();}if(msg.type==='captures'){captures=msg.captures||[];captureSession=msg.sessionStartedAt;render();}if(msg.type==='captures-add'){addCaptures(msg.captures||[]);render();}};ws.onclose=()=>{$('core').className='core';$('core').textContent='Reconectando…';setTimeout(connect,2000);};}
+$('sign-in').onclick=signIn;$('token').addEventListener('keydown',event=>{if(event.key==='Enter')signIn();});$('pause-all').onclick=()=>request('/api/pause',{method:'POST'});
+request('/api/accounts').then(data=>{state={type:'state',...data};start();}).catch(()=>{});
+</script></html>
